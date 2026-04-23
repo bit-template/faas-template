@@ -3,8 +3,6 @@ plugins {
 }
 
 ext {
-    functionName = "smartsort"
-    imageName = "localhost:5000/${functionName}:latest"
     gatewayUrl = "http://127.0.0.1:8080"
     templateName = "python3-http-debian"   // declare here
     templateRepo = "https://github.com/bit-faas/bit-python-flask-template.git"
@@ -52,17 +50,17 @@ tasks.create("copySources") {
     doLast {
         // Copy handler folder
         copy {
-            from "main"
-            into "build/main"
+            from "function"
+            into "build/function"
         }
 
         // Copy function yml
         copy {
-            from "${functionName}.yml"
+            from "stack.yml"
             into "build"
         }
 
-        println "Copied main/ and ${functionName} into build/"
+        println "Copied function/ and stack.yml into build/"
     }
 }
 
@@ -73,7 +71,7 @@ tasks.create("faasBuild") {
     doLast {
         exec {
             workingDir "build"                  // run inside build/
-            commandLine "faas-cli", "build", "-f", "${functionName}.yml"
+            commandLine "faas-cli", "build", "-f", "stack.yml"
         }
     }
 }
@@ -81,46 +79,23 @@ tasks.create("faasBuild") {
 tasks.create("faasPush") {
     group = "faas"
     description = "Push the faas function image"
-    dependsOn("faasBuild")
     doLast {
         exec {
             workingDir "build"                  // run inside build/
-            commandLine "faas-cli", "push", "-f", "${functionName}.yml"
+            commandLine "faas-cli", "push", "-f", "stack.yml"
         }
-    }
-}
-
-tasks.create("faasPushToContainerd") {
-    group = "faas"
-    description = "Import built image into faasd (containerd) via Docker->ctr pipe"
-    // We only need the image to be built locally, not pushed
-    //dependsOn("faasBuild")
-    doLast {
-            exec {
-                commandLine "bash", "-lc",
-                    "docker save ${imageName} | /usr/local/bin/ctr -n openfaas images import -"
-
-            }
-        println "Imported ${imageName} into containerd (namespace: openfaas)."
     }
 }
 
 tasks.create("faasDeploy") {
     group = "faas"
     description = "Deploy the faas function"
-    dependsOn("faasPush")
     doLast {
         exec {
             workingDir "build"                  // run inside build/
-            commandLine "faas-cli", "deploy", "-f", "${functionName}.yml"
+            commandLine "faas-cli", "deploy", "-f", "stack.yml"
         }
     }
-}
-
-tasks.create("faasAll") {
-    group = "faas"
-    description = "Build, push and deploy in one go"
-    dependsOn("faasDeploy")
 }
 
 def warmupLine = "@reboot /bin/bash -lc 'until curl -s http://127.0.0.1:8080/healthz > /dev/null; do sleep 5; done; export OPENFAAS_URL=http://127.0.0.1:8080; echo warmup | /usr/local/bin/faas-cli invoke SmartSort >> ~/faas-warmup.log 2>&1'"
