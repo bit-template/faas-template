@@ -10,14 +10,12 @@ pipeline {
                 sh './gradlew build'   
             }
         }
-        stage('Docker Build & Push') {
+        stage('Docker Push') {
+            when {
+                branch 'main'   // only run this stage on main branch
+            }            
             steps {
                 sh './gradlew push'
-            }
-        }
-        stage('Deploy') {
-            steps {
-                sh './gradlew deploy'
             }
         }
     }
