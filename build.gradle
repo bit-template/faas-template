@@ -4,9 +4,9 @@ plugins {
 
 ext {
     gatewayUrl = "http://127.0.0.1:8080"
-    templateName = "python3-http-debian"   // declare here
-    templateRepo = "https://github.com/bit-faas/bit-python-flask-template.git"
-    templateBranch = "main"                // optional, default branch
+    templateName = "python3-flask-debian"   // declare here
+    templateRepo = "https://github.com/bit-template/python-flask-template.git"
+    templateBranch = "master"                // optional, default branch
 }
 
 tasks.create("downloadTemplate") {
