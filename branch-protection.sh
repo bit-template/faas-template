@@ -27,3 +27,18 @@ curl -X PUT \
     "allow_force_pushes": false,
     "allow_deletions": false
   }'
+
+STACK_FILE="stack.yml"
+
+if [ -f "$STACK_FILE" ]; then
+    echo "Updating function name in stack.yml..."
+
+    # Replace the function key under 'functions:'
+    # Example: need_update_w_faas_name: → repo_name:
+    sed -i "s/^[[:space:]]*need_update_w_faas_name:/${REPO}:/g" "$STACK_FILE"
+
+    echo "stack.yml updated successfully."
+else
+    echo "Warning: stack.yml not found, skipping update."
+fi
+  
