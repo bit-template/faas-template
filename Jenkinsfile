@@ -8,21 +8,21 @@ pipeline {
         REPO = sh(script: "echo ${REMOTE_URL} | sed -E 's#.*/([^/]+)\\.git#\\1#'", returnStdout: true).trim()
     }
 
-stage('Init Repo Protection') {
-    when {
-        expression { fileExists('.jenkins/first-run.flag') }
-    }
-    steps {
-        withCredentials([usernamePassword(credentialsId: 'github-creds',
-                                          usernameVariable: 'ADMIN_USER',
-                                          passwordVariable: 'GITHUB_TOKEN')]) {
-            sh """
-                /opt/scripts/faasrepo-init.sh ${REPO} ${ORG}
-            """
+    stages {
+        stage('Init Repo Protection') {
+            when {
+                expression { fileExists('.jenkins/first-run.flag') }
+            }
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'github-creds',
+                                                  usernameVariable: 'ADMIN_USER',
+                                                  passwordVariable: 'GITHUB_TOKEN')]) {
+                    sh """
+                        /opt/scripts/faasrepo-init.sh ${REPO} ${ORG}
+                    """
+                }
+            }
         }
-    }
-}
-
 
         stage('Checkout') {
             when {
