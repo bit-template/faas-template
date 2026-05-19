@@ -2,25 +2,27 @@ pipeline {
     agent any
 
     environment {
-        GITHUB_TOKEN = "${env.GITHUB_TOKEN}"
-        ADMIN_USER   = "${env.ADMIN_USER}"
-        ORG          = "${env.ORG}"
+        // Derive org and repo from the Git remote URL
+        REMOTE_URL = sh(script: "git config --get remote.origin.url", returnStdout: true).trim()
+        ORG  = sh(script: "echo ${REMOTE_URL} | sed -E 's#https://github.com/([^/]+)/.*#\\1#'", returnStdout: true).trim()
+        REPO = sh(script: "echo ${REMOTE_URL} | sed -E 's#.*/([^/]+)\\.git#\\1#'", returnStdout: true).trim()
     }
 
-    stages {
-
-        stage('Init Repo Protection') {
-            when {
-                expression { fileExists('.jenkins/first-run.flag') }
-            }
-            steps {
-                sh """
-                    chmod +x branch-protection.sh
-                    ./branch-protection.sh ${env.JOB_NAME} ${env.ADMIN_USER} ${env.GITHUB_TOKEN} ${env.ORG}
-                    rm .jenkins/first-run.flag
-                """
-            }
+stage('Init Repo Protection') {
+    when {
+        expression { fileExists('.jenkins/first-run.flag') }
+    }
+    steps {
+        withCredentials([usernamePassword(credentialsId: 'github-creds',
+                                          usernameVariable: 'ADMIN_USER',
+                                          passwordVariable: 'GITHUB_TOKEN')]) {
+            sh """
+                /opt/scripts/faasrepo-init.sh ${REPO} ${ORG}
+            """
         }
+    }
+}
+
 
         stage('Checkout') {
             when {
@@ -33,7 +35,7 @@ pipeline {
             when {
                 not { expression { fileExists('.jenkins/first-run.flag') } }
             }
-            steps { sh './gradlew build' }
+            steps { sh './gradlew faasBuild' }
         }
 
         stage('Docker Push') {
@@ -43,7 +45,7 @@ pipeline {
                     not { expression { fileExists('.jenkins/first-run.flag') } }
                 }
             }
-            steps { sh './gradlew push' }
+            steps { sh './gradlew faasPush' }
         }
     }
 }
