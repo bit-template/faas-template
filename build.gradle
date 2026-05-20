@@ -53,7 +53,7 @@ tasks.create("copySources") {
         // Copy handler folder
         copy {
             from "src"
-            into "build/function"
+            into "build"
         }
 
         // Copy function yml
