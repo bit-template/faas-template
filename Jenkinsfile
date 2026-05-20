@@ -31,6 +31,7 @@ pipeline {
                 )]) {
                     sh """
                         /opt/scripts/update-stack.sh ${env.REPO} ${env.ORG}
+                        /opt/scripts/gradlew-permission.sh ${env.REPO} ${env.ORG}
                         /opt/scripts/remove-flag.sh ${env.REPO} ${env.ORG}
                         /opt/scripts/branch-protection.sh ${env.REPO} ${env.ORG}
                     """
