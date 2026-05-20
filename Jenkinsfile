@@ -17,7 +17,14 @@ stage('Init Repo Protection') {
                                           usernameVariable: 'ADMIN_USER',
                                           passwordVariable: 'GITHUB_TOKEN')]) {
             sh """
-                /opt/scripts/faasrepo-init.sh ${REPO} ${ORG}
+                # 1) Update stack.yml
+                /opt/scripts/update-stack.sh ${REPO} ${ORG}
+
+                # 2) Remove first-run flag
+                /opt/scripts/remove-flag.sh ${REPO} ${ORG}
+
+                # 3) Apply branch protection
+                /opt/scripts/branch-protection.sh ${REPO} ${ORG}
             """
         }
     }
