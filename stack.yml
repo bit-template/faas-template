@@ -4,7 +4,7 @@ provider:
 
 functions:
   $functionname:
-    lang: python3-http-debian
+    lang: python3-flask-debian
     handler: ./function
     image: localhost:5000/$functionname:latest
     min_replicas: 1
